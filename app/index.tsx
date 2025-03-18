@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { Modal } from "@/components/Modal";
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { entrePontos, MapContext, marcador, Ponto } from '@/context/MapContext';
+import firestore from '@react-native-firebase/firestore';
 
 
 export default function App() {
@@ -38,8 +39,10 @@ export default function App() {
       console.log(marker)
       mapRef.current?.animateCamera({
         center: { latitude:marker?.coordenadas.latitude, longitude: marker?.coordenadas.longitude},
-        zoom: 19,
-      }, { duration: 2000 });
+        // zoom: 19,
+      }
+      // , { duration: 2000 }
+    );
     }
 
     function onCloseModalZoomOut(){
@@ -71,7 +74,7 @@ export default function App() {
       
       console.log(dist.toFixed(1) + ' METROS')
       console.log(teste.toFixed(1) + ' DISTANCIA TOTAL')
-      setTempoTrajeto(dist/1.35)
+      setTempoTrajeto(distanciaFinal/1.35)
       setDistanciaFinal(distanciaFinal + dist)
       
     }
@@ -87,26 +90,51 @@ export default function App() {
 
     function limpar(){
       setClickedMarker([])
+      setTempoTrajeto(0)
       setDistanciaFinal(0)
     }
-    
-    const informacoesEntreTodos: entrePontos[] = [
-      {id: 0, paths: [
-        {idsTo: 0, dist: 0, time: 0, path:[{latitude:-28.473923, longitude: -52.813486}, {latitude:-28.473693, longitude: -52.813930}, {latitude:-28.473122, longitude: -52.813753 },{latitude: -28.472626, longitude: -52.813764 }]}
-      ]
-      }
-       
-    ]
 
-
-      
+    async function get(){
+        firestore()
+          .collection('Lugares Importantes')
+          .get()
+          .then(querySnapshot => {
+            console.log('Total users: ', querySnapshot.size);
+        
+            querySnapshot.forEach(documentSnapshot => {
+              console.log('User ID: ', documentSnapshot.id, documentSnapshot.data());
+            });
+          });
+    }
     
-      
-    
-      
-    
-     
-    
+    function set() {
+    lugaresImportantes.forEach(lugar => {
+        firestore()
+            .collection('Pontos')
+            .doc("3")
+            .set({
+              nome:lugar.nome,
+              coordenadas: new firestore.GeoPoint(
+                lugar.coordenadas.latitude,
+                lugar.coordenadas.longitude
+              ),
+                caminhos: {
+                    caminhoNove: {
+                        trajeto: clickedMarker,
+                        distancia: distanciaFinal.toFixed(0) + ' metros',
+                        tempo: formatarTempo(tempoTrajeto)
+                    }
+                }
+             }, { merge: true }) // <-- Evita sobrescrever os dados existentes
+            .then(() => {
+                console.log('Ponto adicionado/atualizado!');
+            })
+            .catch(error => {
+                console.error('Erro ao adicionar ponto:', error);
+            });
+    });
+}
+ 
 
     const lugaresImportantes = [
       {
@@ -119,7 +147,6 @@ export default function App() {
           latitudeDelta:0.01,
           longitudeDelta:0.01
       },
-      
     },
       {
         nome: "PontoUm",
@@ -260,16 +287,19 @@ export default function App() {
 
             <View style={{paddingBottom:20, alignItems:'center', flexDirection:'row', justifyContent:'space-evenly'}}>
 
-                <Pressable style={{ backgroundColor:'#EB690B', borderRadius:8, padding:10}} onPress={ () => console.log(clickedMarker)}>
+                {/* <Pressable style={{ backgroundColor:'#EB690B', borderRadius:8, padding:10}} onPress={ () => console.log(clickedMarker)}>
                     <Text style={{fontSize:20, fontWeight:'bold', color:'black'}}>Press</Text>
+                </Pressable> */}
+
+                <Pressable style={{flexDirection:'row', backgroundColor:'#EB690B', borderRadius:8, padding:10, gap:12}} onPress={() => limpar()}>
+                      <Text style={{fontSize:18, fontWeight:'bold'}}>Tempo Trajeto:</Text>
+                    <Text style={{fontSize:18, fontWeight:'bold'}} >
+                      {formatarTempo(tempoTrajeto)} 
+                    </Text>
                 </Pressable>
 
-                <Text style={{fontSize:18, fontWeight:'bold'}}>
-                  {formatarTempo(tempoTrajeto)} 
-                </Text>
-
-                <Pressable style={{ backgroundColor:'#EB690B', borderRadius:8, padding:10}} onPress={() => limpar()}>
-                  <FontAwesome name="list-alt" size={24} color="black" />
+                <Pressable style={{ backgroundColor:'#EB690B', borderRadius:8, padding:10}} onPress={() => set()}>
+                  <Text style={{fontWeight:'bold', fontSize:20}}>SET</Text>
                 </Pressable>
 
             </View>
@@ -313,10 +343,6 @@ export default function App() {
                         key={index}
                         coordinate={marker.coordenadas}  
                         onPress={() => onMarkerClick(marker)}
-                        // onPress={(cord) => {    
-                        //   let coordenadas = cord.nativeEvent.coordinate
-                        //   setClickedMarker((prev: any) => [ ...prev, coordenadas])
-                        // }}
                         pinColor="#EB690B"
                         
                         >
@@ -334,52 +360,12 @@ export default function App() {
                     </Marker>
                 )}
 
-                <Polygon
-                strokeColor="#00bfff"
-                strokeWidth={3}
-                  coordinates={[
-                    {
-                      latitude:-28.470762,
-                      longitude:-52.814283
-                    },
-                    {
-                      latitude:-28.473077,
-                      longitude:-52.813597
-                    },
-                    {
-                      latitude:-28.473172, 
-                      longitude:-52.812208
-                    },
-                    {
-                      latitude:-28.484037,
-                      longitude:-52.814229
-                    },
-                    {
-                      latitude:-28.482911,
-                      longitude:-52.818884
-                    },
-                    {
-                      latitude:-28.477757,
-                      longitude:-52.818159
-                    },
-                    {
-                      latitude:-28.475323,
-                      longitude:-52.820498
-                    }
-
-                  ]}                
-                />
-
                 <Polyline
                   coordinates={clickedMarker}
                   strokeColor="red"
                   strokeWidth={3}
                 />
-                <Polyline
-                  coordinates={informacoesEntreTodos[0].paths[0].path}  
-                  strokeColor='purple'
-                  strokeWidth={3}              
-                />
+               
               
             </MapView>
         </View>
