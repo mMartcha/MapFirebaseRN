@@ -1,27 +1,40 @@
 import React, { useContext } from 'react'
-import { Image, Pressable, Text, View } from "react-native";
+import { Image, Pressable, SafeAreaView, StyleSheet, Text, View } from "react-native";
 import MapView, { Callout, LatLng, MapMarker, Marker, Polygon, Polyline, PROVIDER_GOOGLE, Region } from "react-native-maps";
-import { styles } from "./styles";
 import { useEffect, useRef, useState } from "react";
 import { Modal } from "@/components/Modal";
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { entrePontos, MapContext, marcador, Ponto } from '@/context/MapContext';
-import firestore from '@react-native-firebase/firestore';
+import firestore, { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { styles } from './styles';
 
 
+type point ={
+  id:string
+  nome: string
+  coordenadas: LatLng
+  caminhos:{
+    caminho:{
+      distancia: number
+      tempo: number
+      trajeto:[]
+    }
+  }
+}
 export default function App() {
 
     const [clickedMarker, setClickedMarker] = useState<marcador[]>([])
         
     const [modalVisible, setModalVisible] = useState(false)
         
-    const [selectedMarker, setSelectedMarker] = useState<Ponto>()
+    const [selectedMarker, setSelectedMarker] = useState<point>()
         
     const [distanciaFinal, setDistanciaFinal] = useState<number>(0)
         
     const [tempoTrajeto, setTempoTrajeto] = useState(Number)
     
-    const [listaDeCoords, setListaDeCoords] = useState<entrePontos[]>([])   
+    const [listaDeCoords, setListaDeCoords] = useState<point[]>([])   
 
       
     const mapRef = useRef<any>()
@@ -33,7 +46,7 @@ export default function App() {
         longitudeDelta:0.01
     }
 
-    function onMarkerClick(marker: Ponto){
+    function onMarkerClick(marker: point){
       setSelectedMarker(marker)
       setModalVisible(true)
       console.log(marker)
@@ -94,18 +107,30 @@ export default function App() {
       setDistanciaFinal(0)
     }
 
-    async function get(){
+    const places:point[] = []
+    
+    // const places2:point
+    
+    function get(){
         firestore()
-          .collection('Lugares Importantes')
+          .collection('Pontos')
           .get()
           .then(querySnapshot => {
-            console.log('Total users: ', querySnapshot.size);
-        
-            querySnapshot.forEach(documentSnapshot => {
-              console.log('User ID: ', documentSnapshot.id, documentSnapshot.data());
-            });
-          });
+            console.log('Pontos: ', querySnapshot.size);
+
+              const data = querySnapshot.docs.map(doc => ({
+                id:doc.id,
+                ...doc.data()
+              }))
+              console.log('Dados carregados:', data); // Verifique os dados no console
+              setListaDeCoords(data); // Atualiza o estado corretamente
+            })
+            .catch(error => console.error('Erro ao buscar pontos:', error));    
+          
     }
+
+    
+
     
     function set() {
     lugaresImportantes.forEach(lugar => {
@@ -282,23 +307,23 @@ export default function App() {
             }
             },[clickedMarkerLength])
 
+            useEffect(()=>{
+              get()
+            },[])
+
     return(
         <View style={styles.container}>
 
             <View style={{paddingBottom:20, alignItems:'center', flexDirection:'row', justifyContent:'space-evenly'}}>
 
-                {/* <Pressable style={{ backgroundColor:'#EB690B', borderRadius:8, padding:10}} onPress={ () => console.log(clickedMarker)}>
-                    <Text style={{fontSize:20, fontWeight:'bold', color:'black'}}>Press</Text>
-                </Pressable> */}
-
-                <Pressable style={{flexDirection:'row', backgroundColor:'#EB690B', borderRadius:8, padding:10, gap:12}} onPress={() => limpar()}>
-                      <Text style={{fontSize:18, fontWeight:'bold'}}>Tempo Trajeto:</Text>
+                <Pressable style={{flexDirection:'row', backgroundColor:'#EB690B', borderRadius:8, padding:10, gap:12}} onPress={() => console.log(places)}>
+                       <Text style={{fontSize:18, fontWeight:'bold'}}>Tempo Trajeto:</Text>                                                       {/* JSON.stringify(places) */}
                     <Text style={{fontSize:18, fontWeight:'bold'}} >
                       {formatarTempo(tempoTrajeto)} 
                     </Text>
                 </Pressable>
 
-                <Pressable style={{ backgroundColor:'#EB690B', borderRadius:8, padding:10}} onPress={() => set()}>
+                <Pressable style={{ backgroundColor:'#EB690B', borderRadius:8, padding:10}} onPress={() => get()}>
                   <Text style={{fontWeight:'bold', fontSize:20}}>SET</Text>
                 </Pressable>
 
@@ -307,27 +332,55 @@ export default function App() {
                 <Modal
                     id={selectedMarker?.id}
                     isOpen={modalVisible}
-                    style={{zIndex:1, top:100}}
+                    animationType='slide'
+                    transparent={true} // Para sobrepor corretamente ao MapView
                   >
-                  <View style={{backgroundColor:'white', width:200, height:120,
-                              justifyContent:'center', alignItems:'center',
-                              borderRadius:8, alignSelf:'center', top:250
-                              }}>
-                      <Text style={{fontSize:20}}>
-                        {selectedMarker?.nome}
-                      </Text>
 
-                      <Pressable onPress={() =>onCloseModalZoomOut()}>
-                        <Text style={{fontSize:20, fontWeight:'bold', color:'red'}}>
-                          FECHA
+                    <View style={styles.modalContainer}>
+                      <View style={{flexDirection:'row', width:'100%', justifyContent:'space-between' }}>
+                        <View style={{}}>
+                          <Text style={{fontSize:18}}>
+                            <Text style={{fontWeight:'bold'}}>Galpão:</Text> {selectedMarker?.nome}
+                          </Text>
+                          <Text style={{fontSize:18}}>
+                            <Text style={{fontWeight:'bold'}}>Trabalhadores:</Text> 123
+                          </Text>
+                        </View>
+
+                        <View style={{ }}>
+                          <Text style={{fontSize:18}}>
+                            <Text style={{fontWeight:'bold'}}>ID Galpão:</Text> {selectedMarker?.id}
+                          </Text>
+                          <Text style={{fontSize:18}}>
+                            <Text style={{fontWeight:'bold'}}>??????:</Text> 123
+                          </Text>
+                        </View>
+                      </View>
+                      
+
+                      <View style={styles.modalText}>
+                        <Text style={{fontSize:18}}>
+                          Deseja selecionar esse local como ponto de saída?
                         </Text>
-                      </Pressable>
+                      </View>
 
-                  </View>
-
-
+                      <View style={styles.modalButtonsView}>
+                        <Pressable onPress={() =>onCloseModalZoomOut()} style={{alignItems:'center', backgroundColor:'#778899', width:80, height:40, borderRadius:8, justifyContent:'center'}}>
+                          <Text style={{fontSize:20, fontWeight:'bold', color:'white'}}>
+                            Sim
+                          </Text>
+                        </Pressable>
+                        <Pressable onPress={() =>onCloseModalZoomOut()} style={{alignItems:'center',backgroundColor:'#778899', width:80, height:40, borderRadius:8, justifyContent:'center'}}>
+                          <Text style={{fontSize:20, fontWeight:'bold', color:'white'}}>
+                            Fechar
+                          </Text>
+                        </Pressable>
+                      </View>
+                      
+                    </View>
                 </Modal>
 
+   
           <MapView style={styles.map}
             initialRegion={initialRegion}
             ref={mapRef}
@@ -338,16 +391,21 @@ export default function App() {
               setClickedMarker((prev: any) => [ ...prev, coordenadas])
             }}
             >
-            {lugaresImportantes.map((marker, index)=>
+              {console.log('marcadores', places)}
+            {places.map(marker=>
                     <Marker
-                        key={index}
-                        coordinate={marker.coordenadas}  
+                        key={marker.id}
+                        coordinate={{
+                          latitude: marker.coordenadas.latitude,
+                          longitude: marker.coordenadas.longitude
+                        }}  
                         onPress={() => onMarkerClick(marker)}
                         pinColor="#EB690B"
                         
                         >
                     </Marker>
                 )}
+                
 
                 {clickedMarker.map((marker, index)=>
                     <Marker

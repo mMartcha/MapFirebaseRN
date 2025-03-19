@@ -9,8 +9,6 @@ import { LatLng } from "react-native-maps";
         coordenadas: {
         latitude: number;
         longitude: number;
-        latitudeDelta: number;
-        longitudeDelta: number;
         };
     };
   
