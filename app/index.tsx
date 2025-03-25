@@ -5,9 +5,11 @@ import { useEffect, useRef, useState } from "react";
 import { Modal } from "@/components/Modal";
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { entrePontos, MapContext, marcador, Ponto } from '@/context/MapContext';
-import firestore, { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
+import firestore, { FirebaseFirestoreTypes, GeoPoint, getFirestore } from '@react-native-firebase/firestore';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { styles } from './styles';
+
+
 
 
 type point ={
@@ -29,12 +31,16 @@ export default function App() {
     const [modalVisible, setModalVisible] = useState(false)
         
     const [selectedMarker, setSelectedMarker] = useState<point>()
+
+    const [secondSelectedMarker, setSecondSelectedMarker] = useState<point>()
         
     const [distanciaFinal, setDistanciaFinal] = useState<number>(0)
         
     const [tempoTrajeto, setTempoTrajeto] = useState(Number)
     
     const [listaDeCoords, setListaDeCoords] = useState<point[]>([])   
+
+    const [showTheWay, setShowTheWay] = useState(false)
 
       
     const mapRef = useRef<any>()
@@ -47,16 +53,21 @@ export default function App() {
     }
 
     function onMarkerClick(marker: point){
-      setSelectedMarker(marker)
-      setModalVisible(true)
-      console.log(marker)
-      mapRef.current?.animateCamera({
-        center: { latitude:marker?.coordenadas.latitude, longitude: marker?.coordenadas.longitude},
-        // zoom: 19,
+      if(selectedMarker){
+        setSecondSelectedMarker(marker)
+      }else{
+
+        setSelectedMarker(marker)
+        setModalVisible(true)
+        console.log(marker)
+        mapRef.current?.animateCamera({
+          center: { latitude:marker?.coordenadas.latitude, longitude: marker?.coordenadas.longitude},
+          // zoom: 19,
+        }
+        // , { duration: 2000 }
+      );
       }
-      // , { duration: 2000 }
-    );
-    }
+      }
 
     function onCloseModalZoomOut(){
       setModalVisible(false)
@@ -105,187 +116,58 @@ export default function App() {
       setClickedMarker([])
       setTempoTrajeto(0)
       setDistanciaFinal(0)
+      // setSelectedMarker()
     }
 
-    const places:point[] = []
+    function showWay(){
+      console.log(selectedMarker)
+      setShowTheWay(true)
+    }
     
-    // const places2:point
     
     function get(){
-        firestore()
-          .collection('Pontos')
-          .get()
-          .then(querySnapshot => {
-            console.log('Pontos: ', querySnapshot.size);
-
-              const data = querySnapshot.docs.map(doc => ({
-                id:doc.id,
-                ...doc.data()
-              }))
-              console.log('Dados carregados:', data); // Verifique os dados no console
-              setListaDeCoords(data); // Atualiza o estado corretamente
-            })
-            .catch(error => console.error('Erro ao buscar pontos:', error));    
-          
-    }
-
-    
-
-    
-    function set() {
-    lugaresImportantes.forEach(lugar => {
-        firestore()
-            .collection('Pontos')
-            .doc("3")
-            .set({
-              nome:lugar.nome,
-              coordenadas: new firestore.GeoPoint(
-                lugar.coordenadas.latitude,
-                lugar.coordenadas.longitude
-              ),
-                caminhos: {
-                    caminhoNove: {
-                        trajeto: clickedMarker,
-                        distancia: distanciaFinal.toFixed(0) + ' metros',
-                        tempo: formatarTempo(tempoTrajeto)
-                    }
-                }
-             }, { merge: true }) // <-- Evita sobrescrever os dados existentes
-            .then(() => {
-                console.log('Ponto adicionado/atualizado!');
-            })
-            .catch(error => {
-                console.error('Erro ao adicionar ponto:', error);
-            });
-    });
+    getFirestore()
+      .collection('Pontos')
+      .get()
+      .then(querySnapshot => {
+        console.log('Pontos: ', querySnapshot.size);
+          const data = querySnapshot.docs.map(doc => ({
+            id:doc.id,
+            ...doc.data()
+          }))
+          console.log('Dados carregados:', data); // Verifique os dados no console
+          setListaDeCoords(data); // Atualiza o estado corretamente
+        })
+        .catch(error => console.error('Erro ao buscar pontos:', error));             
 }
- 
 
-    const lugaresImportantes = [
-      {
-        nome: "Entrada",
-        descricao: "Entrada.",
-        id:'0',
-        coordenadas: {
-          latitude: -28.4739720,      
-          longitude: -52.813063,
-          latitudeDelta:0.01,
-          longitudeDelta:0.01
-      },
-    },
-      {
-        nome: "PontoUm",
-        descricao: "PontoNoveDesc.",
-        id:'1',
-        coordenadas: {
-          latitude: -28.472847,       
-          longitude: -52.814130,
-          latitudeDelta:0.01,
-          longitudeDelta:0.01
-        },
-      },
-        {
-          nome: "PontoDois",
-          descricao: "PontoUmDesc",
-          id:'2',
-          coordenadas: {
-            latitude: -28.472021,
-            longitude: -52.814701,
-            latitudeDelta:0.01,
-            longitudeDelta:0.01,
-                        
-          },
-        },
-        {
-          nome: "PontoTres",
-          descricao: "PontoOitoDesc.",
-          id:'3',
-          coordenadas: {
-            latitude: -28.473036,       
-            longitude: -52.814999,
-            latitudeDelta:0.01,
-            longitudeDelta:0.01
-          },
-        },
-        {
-          nome: "PontoQuatroN",
-          descricao: "PontoDoisDesc",
-          id:'4',
-          coordenadas: {
-            latitude: -28.473709,
-            longitude: -52.814991,
-            latitudeDelta:0.01,
-            longitudeDelta:0.01
-          },
-        },
-        {
-          nome: "PontoCincoN",
-          descricao: "PontoSeteDesc.",
-          id:'5',
-          coordenadas: {
-            latitude: -28.472689,        
-            longitude: -52.816372,
-            latitudeDelta:0.01,
-            longitudeDelta:0.01
-          },
-        },
-        {
-          nome: "PontoSeis",
-          descricao: "PontoSeisDesc.",
-          id:'6',
-          coordenadas: {
-            latitude: -28.473784,       
-            longitude: -52.816914,
-            latitudeDelta:0.01,
-            longitudeDelta:0.01
-          },
-        },
-        {
-          nome: "PontoSeteN",
-          descricao: "PontoCincoDesc",
-          id:'7',
-          coordenadas: {
-            latitude: -28.474204,        
-            longitude: -52.818511,
-            latitudeDelta:0.01,
-            longitudeDelta:0.01
-          },
-        },
-        {
-          nome: "PontoOito",
-          descricao: "PontoQuatroDesc",
-          id:'8',
-          coordenadas: {
-            latitude: -28.474851,          
-            longitude: -52.817930,
-            latitudeDelta:0.01,
-            longitudeDelta:0.01
-          },
-        },
-        {
-          nome: "PontoNoveN",
-          descricao: "PontoTresDesc",
-          id:'9',
-          coordenadas: {
-            latitude: -28.479369,           
-            longitude: -52.815446,
-            latitudeDelta:0.01,
-            longitudeDelta:0.01
-          },
-        },
-        {
-          nome: "Associação",
-          descricao: "Palestras.",
-          id:'10',
-          coordenadas: {
-            latitude: -28.476016,
-            longitude: -52.817033,
-            latitudeDelta:0.01,
-            longitudeDelta:0.01
 
-          },
-        },
-      ];
+      function set() {
+        clickedMarker.forEach(node =>{
+          getFirestore()
+          .collection('Nodes')
+          .doc('1')
+          .set({
+                  building: true,
+                  coordenadas: 
+                  new firestore.GeoPoint(
+                     clickedMarker[0].latitude,
+                     clickedMarker[0].longitude
+                    ),
+
+  
+          }, { merge: false })
+          .then(() => {
+              console.log('Coordenadas atualizadas!');
+          })
+          .catch(error => {
+              console.error('Erro ao atualizar coordenadas:', error);
+          });
+    
+        })
+      }
+        
+
 
       let cordenada1: marcador
       let cordenada2: marcador
@@ -308,7 +190,7 @@ export default function App() {
             },[clickedMarkerLength])
 
             useEffect(()=>{
-              get()
+                get()
             },[])
 
     return(
@@ -316,14 +198,14 @@ export default function App() {
 
             <View style={{paddingBottom:20, alignItems:'center', flexDirection:'row', justifyContent:'space-evenly'}}>
 
-                <Pressable style={{flexDirection:'row', backgroundColor:'#EB690B', borderRadius:8, padding:10, gap:12}} onPress={() => console.log(places)}>
+                <Pressable style={{flexDirection:'row', backgroundColor:'#EB690B', borderRadius:8, padding:10, gap:12}} onPress={() => limpar()}>
                        <Text style={{fontSize:18, fontWeight:'bold'}}>Tempo Trajeto:</Text>                                                       {/* JSON.stringify(places) */}
                     <Text style={{fontSize:18, fontWeight:'bold'}} >
                       {formatarTempo(tempoTrajeto)} 
                     </Text>
                 </Pressable>
 
-                <Pressable style={{ backgroundColor:'#EB690B', borderRadius:8, padding:10}} onPress={() => get()}>
+                <Pressable style={{ backgroundColor:'#EB690B', borderRadius:8, padding:10}} onPress={() => set()}>
                   <Text style={{fontWeight:'bold', fontSize:20}}>SET</Text>
                 </Pressable>
 
@@ -365,7 +247,7 @@ export default function App() {
                       </View>
 
                       <View style={styles.modalButtonsView}>
-                        <Pressable onPress={() =>onCloseModalZoomOut()} style={{alignItems:'center', backgroundColor:'#778899', width:80, height:40, borderRadius:8, justifyContent:'center'}}>
+                        <Pressable onPress={() =>showWay()} style={{alignItems:'center', backgroundColor:'#778899', width:80, height:40, borderRadius:8, justifyContent:'center'}}>
                           <Text style={{fontSize:20, fontWeight:'bold', color:'white'}}>
                             Sim
                           </Text>
@@ -391,8 +273,8 @@ export default function App() {
               setClickedMarker((prev: any) => [ ...prev, coordenadas])
             }}
             >
-              {console.log('marcadores', places)}
-            {places.map(marker=>
+
+                {listaDeCoords.map(marker=>
                     <Marker
                         key={marker.id}
                         coordinate={{
@@ -404,7 +286,7 @@ export default function App() {
                         
                         >
                     </Marker>
-                )}
+                  )}
                 
 
                 {clickedMarker.map((marker, index)=>
@@ -412,11 +294,19 @@ export default function App() {
                         key={index}
                         coordinate={marker}  
                         pinColor="#EB690B"
-                        // icon={require("@/assets/images/dot.png")}
                         anchor={{x:0.5,y:1}}
+                        // onPress={() => }
                         >
                     </Marker>
-                )}
+                  )}
+
+                {/* {showTheWay && (
+                  <Polyline
+                    coordinates={selectedMarker?.caminhos.caminhoNove.trajeto}
+                    strokeWidth={2}
+                    strokeColor='red'
+                  />
+                )} */}
 
                 <Polyline
                   coordinates={clickedMarker}

@@ -69,6 +69,7 @@ export function MapContextProvider({children}:MapContextProviderProps ){
         const [tempoTrajeto, setTempoTrajeto] = useState(Number)
 
         const [listaDeCoords, setListaDeCoords] = useState<entrePontos[]>([])
+        
    
     return(
         <MapContext.Provider value={{
