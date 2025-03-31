@@ -1,5 +1,4 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
 import { Stack, Tabs } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
@@ -9,14 +8,34 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { MapContextProvider } from '@/context/MapContext';
+import {
+  useFonts,
+  Montserrat_100Thin,
+  Montserrat_200ExtraLight,
+  Montserrat_300Light,
+  Montserrat_400Regular,
+  Montserrat_500Medium,
+  Montserrat_600SemiBold,
+  Montserrat_700Bold,
+  Montserrat_800ExtraBold,
+  Montserrat_900Black,
 
+} from '@expo-google-fonts/montserrat';
+import { Image } from 'react-native';
 
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-  });
+    Montserrat_100Thin,
+    Montserrat_200ExtraLight,
+    Montserrat_300Light,
+    Montserrat_400Regular,
+    Montserrat_500Medium,
+    Montserrat_600SemiBold,
+    Montserrat_700Bold,
+    Montserrat_800ExtraBold,
+    Montserrat_900Black,  });
 
 
 
@@ -36,7 +55,8 @@ export default function RootLayout() {
           name='(tabs)/home/index'
           options={{
             title:"Home",
-            tabBarIcon: ({ color }) => <FontAwesome size={28} name="home" color='black' />,
+            tabBarIcon: ({ color }) => <Image source={require('@/assets/images/House.png')}/>
+            ,
           }}
           />
 
@@ -44,7 +64,8 @@ export default function RootLayout() {
           name='(tabs)/map/index'
           options={{
             title:"Map",
-            tabBarIcon: ({ color }) => <FontAwesome name="map-marker" size={24} color="black" />,
+            tabBarIcon: ({ color }) => <Image source={require('@/assets/images/MapPinLine.png')}/>
+            ,
           }}
         />
 
@@ -52,7 +73,8 @@ export default function RootLayout() {
           name='(tabs)/settings/index'
           options={{
             title:"Settings",
-            tabBarIcon: ({ color }) => <FontAwesome name="gear" size={24} color="black" />,
+            tabBarIcon: ({ color }) => <Image source={require('@/assets/images/Gear.png')}/>
+            ,
           }}
         />
 
