@@ -78,6 +78,15 @@ export default function RootLayout() {
           }}
         />
 
+          <Tabs.Screen
+          name='(tabs)/camera/index'
+          options={{
+            title:"Settings",
+            href:null
+            
+          }}
+        />
+
 
       </Tabs>
     </MapContextProvider>

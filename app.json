@@ -25,6 +25,14 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
+          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone",
+          "recordAudioAndroid": true
+        }
+      ],
       "expo-router",
       "@react-native-firebase/app",
       "@react-native-firebase/auth",
@@ -39,6 +47,7 @@
         }
       ],
       "expo-font"
+      
     ],
     "experiments": {
       "typedRoutes": true

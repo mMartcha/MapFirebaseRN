@@ -126,7 +126,7 @@ export default function Map() {
       .collection('Pontos')
       .get()
       .then(querySnapshot => {
-        console.log('Pontos: ', querySnapshot.size);
+        // console.log('Pontos: ', querySnapshot.size);
           const data = querySnapshot.docs.map(doc => ({
             id:doc.id,
             ...doc.data()
@@ -188,11 +188,11 @@ export default function Map() {
             },[])
 
     return(
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container}>
 
             <View style={styles.header}>
 
-                <Pressable style={{flexDirection:'row', backgroundColor:'#EB690B', borderRadius:8, padding:10, gap:12}} onPress={() => limpar()}>
+                <Pressable style={{flexDirection:'row', backgroundColor:'#EB690B', borderRadius:8, padding:10, gap:12, marginTop:30}} onPress={() => limpar()}>
                        <Text style={{fontSize:18, fontWeight:'bold'}}>Tempo Trajeto:</Text>                                                       {/* JSON.stringify(places) */}
                     <Text style={{fontSize:18, fontWeight:'bold'}} >
                       {formatarTempo(tempoTrajeto)} 
@@ -296,6 +296,6 @@ export default function Map() {
                
               
             </MapView>
-        </View>
+        </SafeAreaView>
     )
 }

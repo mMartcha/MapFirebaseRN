@@ -47,6 +47,20 @@ export const styles = StyleSheet.create({
     carrosel:{
         marginHorizontal:12
     },
+
+    homeLowerView:{
+        marginHorizontal:12,
+        height:300,
+        borderWidth:1,
+        borderColor:'black',
+        borderRadius:20,
+        alignItems:"center",
+        justifyContent:"center"
+    },
+    message: {
+        textAlign: 'center',
+        paddingBottom: 10,
+      },
     
 
 })
