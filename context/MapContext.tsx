@@ -1,5 +1,6 @@
 import { createContext, ReactNode, useState } from "react";
 import React from "react";
+import { ImageSourcePropType } from "react-native";
 import { LatLng } from "react-native-maps";
 
     export type Ponto = {
@@ -30,6 +31,19 @@ import { LatLng } from "react-native-maps";
             paths: info[]
     }
 
+    type carroselUm ={
+        title: string
+        data: string
+        tempo: number
+        imagem?: ImageSourcePropType
+    }
+    
+    type carroselDois = {
+        data: string
+        nome: string
+        valor: number
+        imagem?: ImageSourcePropType
+    }
 
 
 
@@ -47,6 +61,14 @@ type MapContextProps = {
     setTempoTrajeto: React.Dispatch<React.SetStateAction<number>>,
     listaDeCoords: entrePontos[],
     setListaDeCoords: React.Dispatch<React.SetStateAction<entrePontos[]>>
+    carroselUmImages: string[],
+    setCarroselUmImages: React.Dispatch<React.SetStateAction<string[]>>,
+    carroselDoisImages: string[],
+    setCarroselDoisImages: React.Dispatch<React.SetStateAction<string[]>>
+    carroselUm: carroselUm[],
+    setCarroselUm: React.Dispatch<React.SetStateAction<carroselUm[]>>
+    carroselDois: carroselDois[],
+    setCarroselDois: React.Dispatch<React.SetStateAction<carroselDois[]>>
 }
 
 
@@ -70,6 +92,13 @@ export function MapContextProvider({children}:MapContextProviderProps ){
 
         const [listaDeCoords, setListaDeCoords] = useState<entrePontos[]>([])
         
+        const [carroselUmImages, setCarroselUmImages] = useState<string[]>([])
+
+        const [carroselDoisImages, setCarroselDoisImages] = useState<string[]>([])
+
+        const [carroselUm, setCarroselUm] = useState<carroselUm[]>([])
+
+        const [carroselDois, setCarroselDois] = useState<carroselDois[]>([])
    
     return(
         <MapContext.Provider value={{
@@ -78,7 +107,11 @@ export function MapContextProvider({children}:MapContextProviderProps ){
             selectedMarker,setSelectedMarker,
             distanciaFinal,setDistanciaFinal,
             tempoTrajeto, setTempoTrajeto,
-            listaDeCoords,setListaDeCoords
+            listaDeCoords,setListaDeCoords,
+            carroselUmImages,setCarroselUmImages,
+            carroselDoisImages,setCarroselDoisImages,
+            carroselUm, setCarroselUm,
+            carroselDois, setCarroselDois
         }}>
             {children}
         </MapContext.Provider>

@@ -1,83 +1,39 @@
-import { Button, FlatList, Image, Pressable, ScrollView, Text, View } from "react-native";
+import { Button, FlatList, Image, ImageSourcePropType, Pressable, ScrollView, Text, View } from "react-native";
 import { styles } from "./styles";
 import AntDesign from '@expo/vector-icons/AntDesign';
 import CarroselView from "@/components/Carrosel";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { getFirestore } from "@react-native-firebase/firestore";
 import { theme } from "@/constants/Colors";
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import { router } from "expo-router";
+import { MapContext } from "@/context/MapContext";
+import { getCarroselImages1,getCarroselImages2 } from "@/services/getCarroselImage";
+import { fetchCarrosel1, fetchCarrosel2 } from "@/services/fetchCarrosel";
 
-type carroselUm ={
-    title: string
-    data: string
-    tempo: number
-}
 
-type carroselDois = {
-    data: string
-    nome: string
-    valor: number
-}
 
 export default function Home() {
 
+
+    const {carroselUmImages,setCarroselUmImages, carroselDoisImages, setCarroselDoisImages, carroselUm,setCarroselUm,setCarroselDois, carroselDois} = useContext(MapContext)
 
     const [permission, requestPermission] = useCameraPermissions()
 
     const isPermissionGranted = Boolean(permission?.granted)
 
 
-    const [carroselUm, setCarroselUm] = useState<carroselUm[]>([])
-    const [carroselDois, setCarroselDois] = useState<carroselDois[]>([])
-
     function qrCodeReader(){
         router.navigate("/(tabs)/camera")
     }
-
-
-    function getCarrosel1() {
-        getFirestore()
-          .collection('testeCarrosel')
-          .get()
-          .then(querySnapshot => {           
-            const data = querySnapshot.docs.map(doc => ({
-              id: doc.id,
-              title: doc.data().title || '',  // Garante que o campo exista
-              data: doc.data().data || '',
-              tempo: doc.data().tempo || '',
-            })) as carroselUm[]; // Força o tipo correto
-            
-            // console.log('Dados carregados:', data);
-            setCarroselUm(data); // Atualiza o estado corretamente
-          })
-          .catch(error => console.error('Erro ao buscar pontos:', error));
-    }
     
 
-    function getCarrosel2() {
-        getFirestore()
-          .collection('testeCarroselDois')
-          .get()
-          .then(querySnapshot => {
-            const data = querySnapshot.docs.map(doc => ({
-              id: doc.id,
-              nome: doc.data().nome || '',
-              data: doc.data().data || '',
-              valor: doc.data().valor || '',
-            })) as carroselDois[]; // Força o tipo correto
-            
-            // console.log('Dados carregados:', data);
-            setCarroselDois(data); // Atualiza o estado corretamente
-          })
-          .catch(error => console.error('Erro ao buscar pontos:', error));
-    }
+    useEffect(() => {
+        getCarroselImages1(setCarroselUmImages);
+        getCarroselImages2(setCarroselDoisImages);
+    }, []);
     
 
-    useEffect(()=>{
-        getCarrosel1()
-        getCarrosel2()
-    },[])
 
     return( 
         <View style={styles.container}>
@@ -95,7 +51,7 @@ export default function Home() {
 
             <View style={styles.experience}>
                 <Text style={{fontSize:20, fontFamily:theme.fonts.semiBold}}>Vamos começar a experiencia?</Text>
-                <Pressable style={styles.insideExperience} disabled={!isPermissionGranted} onPress={qrCodeReader}>
+                <Pressable style={styles.insideExperience} onPress={()=> console.log(carroselUmImages)}>
                     <Text style={{fontSize:16, color:'grey', fontFamily:theme.fonts.medium, opacity: !isPermissionGranted ? 0.5 : 1}}>Iniciar</Text>
                     <Image source={require('@/assets/images/ArrowRight.png')}/>
                 </Pressable>
@@ -117,7 +73,8 @@ export default function Home() {
                             tempo={carroselUm[item.index].tempo}
                             news
                             toggleMin
-                        />
+                            image={carroselUmImages[item.index]}
+                            />
                     )}
                 />
             </View>
@@ -137,6 +94,8 @@ export default function Home() {
                             data={carroselDois[item.index].data}
                             moneySign 
                             products
+                            image={carroselDoisImages[item.index]}
+
                             />
                         )}
                         />

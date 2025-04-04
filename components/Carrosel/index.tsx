@@ -1,10 +1,11 @@
-import { Image, Pressable, Text, View } from "react-native";
+import { Image, ImageSourcePropType, Pressable, Text, View } from "react-native";
 import { styles } from "./styles";
 import AntDesign from '@expo/vector-icons/AntDesign';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { SetStateAction, useEffect, useState } from "react";
+import { SetStateAction, useContext, useEffect, useState } from "react";
 import { theme } from "@/constants/Colors";
 import { FirebaseFirestoreTypes, getFirestore } from "@react-native-firebase/firestore";
+import { MapContext } from "@/context/MapContext";
 
 
 type Props = {
@@ -15,6 +16,7 @@ type Props = {
     products?: boolean
     moneySign?: boolean
     toggleMin?: boolean
+    image: string
 }
 
 type carroselUm ={
@@ -24,50 +26,28 @@ type carroselUm ={
     tempo: number
 }
 
-export default function CarroselView({title, tempo, data, news, moneySign,toggleMin, products}: Props) {
+export default function CarroselView({title, tempo, data, news, moneySign,toggleMin, products, image}: Props) {
 
     const maquina = require('@/assets/images/trator.png')
     const copo = require('@/assets/images/copo.png')
 
-    const [carroselUmMidia, setCarroselUmMidia] = useState<carroselUm[]>([])
-    const [carroselUmImages, setCarroselUmImages] = useState()
-
+    const {carroselUmImages, setCarroselUmImages, carroselDoisImages, setCarroselDoisImages} = useContext(MapContext)
     
     const tipsAndContents = require('@/assets/images/tipo.png')
     const newProducts = require('@/assets/images/newProducts.png')
 
-    let images: FirebaseFirestoreTypes.QueryDocumentSnapshot<FirebaseFirestoreTypes.DocumentData>[] = []
-
-    function getCarrosel1() {
-        getFirestore()
-        .collection('testeCarrosel')
-        .get()
-        .then(querySnapshot => {
-            querySnapshot.docs.forEach(element =>{
-                images.push(element)
-                console.log(images)
-                })
-              })
-              .catch(error => console.error('Erro ao buscar pontos:', error));
-        }
-
-        
-        
-        useEffect(()=>{
-            // getCarrosel1()
-        },[])
-
-
     return(
         <View style={styles.container}>
             <View style={styles.image}>
-                <Image source={(news === true ? maquina : copo)}
-                    resizeMode="stretch"
+                <Image 
+                    source={typeof image === 'string' ? { uri: image } : image}
+                    resizeMode="cover"
                     style={{ height:161}}
                 />
             </View>
 
             <View style={styles.informations}>
+
                 <Image
                     source={(products === true ? newProducts : tipsAndContents )}
                     style={{height:20, width:110}}
@@ -90,7 +70,7 @@ export default function CarroselView({title, tempo, data, news, moneySign,toggle
                     <View style={{flexDirection:'row', gap:6, alignItems:'center', justifyContent:"flex-start" }}>
                         
                         
-                        <Pressable onPress={() => getCarrosel1()}>
+                        <Pressable onPress={() => ({})}>
                             <AntDesign name="calendar" size={18} color="#EB690B" />
                         </Pressable>
                         
@@ -99,7 +79,7 @@ export default function CarroselView({title, tempo, data, news, moneySign,toggle
                             {data} 
                         </Text>
                         
-                        <Pressable onPress={()=> console.log(carroselUmImages)}>
+                        <Pressable onPress={()=> console.log(carroselDoisImages)}>
                             <Image source={require('@/assets/images/share.png')}  style={{left:35, height:30, width:30}}/>
                         </Pressable>
                     
